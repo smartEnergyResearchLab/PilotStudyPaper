@@ -84,7 +84,6 @@ if(create_results_table == TRUE) {
 
 
 
-
 # logit models -------------------------------------------------------------
 
 # IMD
