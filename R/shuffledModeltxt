@@ -1,0 +1,43 @@
+
+<table style="text-align:center"><caption><strong>Shuffled Model</strong></caption>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"></td><td><em>Dependent variable:</em></td></tr>
+<tr><td></td><td colspan="1" style="border-bottom: 1px solid black"></td></tr>
+<tr><td style="text-align:left"></td><td>consent</td></tr>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">as.factor(quintile)2</td><td>0.2<sup>*</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">as.factor(quintile)3</td><td>0.3<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">as.factor(quintile)4</td><td>0.6<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">as.factor(quintile)5</td><td>0.8<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">regionEAST OF ENGLAND</td><td>0.2<sup>**</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">regionGREATER LONDON</td><td>0.1</td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">regionSOUTH EAST</td><td>0.1</td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">regionSOUTH WEST</td><td>0.3<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">regionWALES</td><td>0.4<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">regionWEST MIDLANDS</td><td>0.1</td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td style="text-align:left">Constant</td><td>-2.9<sup>***</sup></td></tr>
+<tr><td style="text-align:left"></td><td>(0.1)</td></tr>
+<tr><td style="text-align:left"></td><td></td></tr>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left">Observations</td><td>18,000</td></tr>
+<tr><td style="text-align:left">Log Likelihood</td><td>-5,586.6</td></tr>
+<tr><td style="text-align:left">Akaike Inf. Crit.</td><td>11,195.1</td></tr>
+<tr><td colspan="2" style="border-bottom: 1px solid black"></td></tr><tr><td style="text-align:left"><em>Note:</em></td><td style="text-align:right"><sup>*</sup>p<0.1; <sup>**</sup>p<0.05; <sup>***</sup>p<0.01</td></tr>
+</table>
