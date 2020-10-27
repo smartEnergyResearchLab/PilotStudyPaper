@@ -1,24 +1,34 @@
 ---
-title: 'Response model testing'
-subtitle: 'Exploring D-W stat and platting methods'
-author: 'Ben Anderson'
+title: "SERL response/consent model testing"
+subtitle: "Exploring D-W stat issues and testing results plotting methods"
+author: "Ben Anderson"
 date: 'Last run at: `r Sys.time()`'
 output:
+  html_document:
+    toc: yes
+    toc_depth: '2'
+    df_print: paged
+  bookdown::pdf_document2:
+    fig_caption: yes
+    number_sections: yes
   bookdown::html_document2:
     fig_caption: yes
     code_folding: hide
     number_sections: yes
     toc: yes
     toc_depth: 2
-    toc_float: TRUE
-    self_contained: TRUE
-  bookdown::pdf_document2:
-    fig_caption: yes
-    number_sections: yes
+    toc_float: yes
+    self_contained: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
 ---
 
 # Setup
-```{r setup, include=FALSE}
+
+Load the packages etc we need.
+
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(data.table) # big fast data
@@ -31,12 +41,15 @@ library(here) # so useful - relative repo paths!
 library(stargazer) # pretty model tables
 
 user <- Sys.info()[[7]]
-dataF <- path.expand("~/temp/serlRecruit18000.csv")
+if(user == "ben"){
+  dataF <- path.expand("~/temp/serlRecruit18000.csv")
+} # else...
+
 ```
 
 # Introduction
 
-Testing non-response models for the SERL pilot data
+Testing non-response models for the SERL pilot data...
 
 # Data
 
