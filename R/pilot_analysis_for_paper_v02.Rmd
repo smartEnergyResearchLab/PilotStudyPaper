@@ -349,13 +349,12 @@ stargazer::stargazer(mShuffled,
 
 # Complex non-response model: adding model co-variates
 
-Having established our base model we'll now add `cell` to see which pathway made a difference.
+Having established our base model we'll now add `incentive`, `p2w` and `version` to see which pathway made a difference.
 
 ```{r, complexModel}
-m <- glm(formula = consent ~ as.factor(quintile) + 
-                          region + 
-           as.factor(cell), 
-                       family = binomial(logit), all_onboards) # wiil auto-drop the missing values
+m <- glm(formula = consent ~ as.factor(quintile) + incentive + p2w + as.factor(version) + 
+                          region , 
+                       family = binomial(logit), all_onboards) # will auto-drop the missing values
 
 summary(m)
 # CIs for coef not OR for plot
@@ -372,12 +371,36 @@ mComplex <- m
 
 There are a number of cell pathways which have effects of some size (2,4,8,10) but only cell 8 is statistically significant at the 95% level. Cell 2 has a notable large +ve effect while cell 4 has a notably large -ve effect but the SE is large in both cases so the 95% CI are also likely to be wide It is possible that this uncertainty is likely to be producing the n/s result.
 
+# Complex non-response model: adding model interactions
+
+Having established our base model we'll now add an interaction to see if the consent rate of those in certain quintiles is influenced by the incentive.
+
+```{r, interactionModel}
+m <- glm(formula = consent ~ as.factor(quintile) * incentive + p2w + as.factor(version) + 
+                          region , 
+                       family = binomial(logit), all_onboards) # will auto-drop the missing values
+
+summary(m)
+# CIs for coef not OR for plot
+coefCI <- cbind(coef = coef(m), 
+                confint(m))
+
+df <- broom::tidy(m)
+df$model <- "4. Interactions"
+
+interactionModelDT <- data.table::as.data.table(cbind(coefCI, df)) # collect for later plot
+
+mInteraction <- m
+```
+
+Interestingly we do not find a statistically significant effect for the interactions. This model also removes the main effect of the incentive suggesting that the incentive effect is relatively small and unstable.
+
 # Comparing all our models
 
 We can see how much this modifies the original simple model by plotting them together. This will be quite a busy plot...
 
 ```{r, compareAllModels, fig.cap="Comparing consent models"}
-plotDT <- rbind(shuffledModelDT, complexModelDT)
+plotDT <- rbind(shuffledModelDT, complexModelDT, interactionModelDT)
 data.table::setnames(plotDT, c("2.5 %","97.5 %"), c("lo", "up")) # for easier ggplotting
 
 p <- ggplot2::ggplot(plotDT, aes(x = coef, y = term , fill = model)) + 
@@ -392,18 +415,20 @@ ggplot2::ggsave("compareAllModels.png", plot = p,
                 path = here::here("plots"))
 
 ```
-The plot confirms the previous conclusion that while there are some potentially interesting effect sizes, only cell 8 is statistically significant at the 95% level as indicated by the 95% CI not including 0. Hoever we should not ignore cell 2 which is clearly marginal.
+We really need to re-name the variable labels to make sense of the plot as the variables we might want to compare are not next to each other. However, the plot confirms the previous conclusions on the effect of IMD and region on incentive. We can also see that the interaction effects have larger 95% CIs - this explains why the main effects for incentives are statistically significant but the interaction effects are not. You should be able to see that the main effects coefficients for `Voucher` are actually the same for the main effects in each model.
 
-It also doesn't look like adding the `cell` variable alters the other parts of the model much (the other coefficients appear largely unchanged) but it might be better to have them side by side in a table. Stargazer can do that too... and it saves this table for us as well
+This is easier to see if we have the model results side by side in a table. Stargazer can do that too... and it saves this table for us as well.
+
+We can now see that the `incentiveThermometer` main effect is unstable but the `incentiveVoucher` remains unchanged when interactions between IMD and incentive are added.
 
 ```{r, allModelOutput, results='asis'}
-stargazer::stargazer(mShuffled, mComplex,
+stargazer::stargazer(mShuffled, mComplex, mInteraction,
                      type = "html", 
                      title="Shuffled Model", digits=3, 
                      out=here::here("outputTables","allModels.txt"))
 ```
 
-Finally we can test if the model with `cell` is an improvement using `anova` with the Chisq test method (as our models are logistic):
+Next we  test if the model with all the co-variates (but not the interactions) is an improvement using `anova` with the Chisq test method (as our models are logistic):
 
 ```{r, testModels}
 anova(mShuffled, mComplex, test = "Chisq")
@@ -411,6 +436,15 @@ anova(mShuffled, mComplex, test = "Chisq")
 ```
 
 Looks like it does.
+
+Finally we can test if the model with all the co-variates and the interactions is an improvement on the no-interactions using `anova` with the Chisq test method (as our models are logistic):
+
+```{r, testModelsInt}
+anova(mComplex, mInteraction, test = "Chisq")
+
+```
+
+Nope - and that is what we would suspect given the lack of statistically significant interaction effects.
 
 # R environment
 

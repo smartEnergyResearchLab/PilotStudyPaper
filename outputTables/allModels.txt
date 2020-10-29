@@ -1,80 +1,83 @@
 
 Shuffled Model
-==================================================
-                          Dependent variable:     
-                      ----------------------------
-                                consent           
-                           (1)            (2)     
---------------------------------------------------
-as.factor(quintile)2      0.164*        0.164*    
-                         (0.097)        (0.097)   
-                                                  
-as.factor(quintile)3     0.330***      0.331***   
-                         (0.094)        (0.095)   
-                                                  
-as.factor(quintile)4     0.630***      0.631***   
-                         (0.092)        (0.092)   
-                                                  
-as.factor(quintile)5     0.750***      0.751***   
-                         (0.093)        (0.093)   
-                                                  
-regionEAST OF ENGLAND    0.249**        0.249**   
-                         (0.106)        (0.106)   
-                                                  
-regionGREATER LONDON      0.140          0.140    
-                         (0.104)        (0.104)   
-                                                  
-regionSOUTH EAST          0.146          0.146    
-                         (0.100)        (0.100)   
-                                                  
-regionSOUTH WEST         0.278***      0.278***   
-                         (0.106)        (0.107)   
-                                                  
-regionWALES              0.422***      0.423***   
-                         (0.117)        (0.117)   
-                                                  
-regionWEST MIDLANDS       0.114          0.114    
-                         (0.112)        (0.112)   
-                                                  
-as.factor(cell)2                        0.234*    
-                                        (0.125)   
-                                                  
-as.factor(cell)3                         0.183    
-                                        (0.127)   
-                                                  
-as.factor(cell)4                        -0.217    
-                                        (0.137)   
-                                                  
-as.factor(cell)5                         0.025    
-                                        (0.130)   
-                                                  
-as.factor(cell)6                         0.066    
-                                        (0.129)   
-                                                  
-as.factor(cell)7                         0.169    
-                                        (0.127)   
-                                                  
-as.factor(cell)8                       0.350***   
-                                        (0.123)   
-                                                  
-as.factor(cell)9                         0.183    
-                                        (0.127)   
-                                                  
-as.factor(cell)10                        0.205    
-                                        (0.126)   
-                                                  
-as.factor(cell)11                        0.115    
-                                        (0.128)   
-                                                  
-as.factor(cell)12                        0.025    
-                                        (0.130)   
-                                                  
-Constant                -2.853***      -2.973***  
-                         (0.109)        (0.141)   
-                                                  
---------------------------------------------------
-Observations              18,000        18,000    
-Log Likelihood          -5,586.562    -5,572.477  
-Akaike Inf. Crit.       11,195.120    11,188.950  
-==================================================
-Note:                  *p<0.1; **p<0.05; ***p<0.01
+==========================================================================
+                                                Dependent variable:       
+                                          --------------------------------
+                                                      consent             
+                                             (1)        (2)        (3)    
+--------------------------------------------------------------------------
+as.factor(quintile)2                        0.164*     0.164*     0.070   
+                                           (0.097)    (0.097)    (0.173)  
+                                                                          
+as.factor(quintile)3                       0.330***   0.331***    0.254   
+                                           (0.094)    (0.095)    (0.167)  
+                                                                          
+as.factor(quintile)4                       0.630***   0.631***   0.729*** 
+                                           (0.092)    (0.092)    (0.158)  
+                                                                          
+as.factor(quintile)5                       0.750***   0.751***   0.611*** 
+                                           (0.093)    (0.093)    (0.162)  
+                                                                          
+incentiveThermometer                                   0.066      -0.052  
+                                                      (0.063)    (0.188)  
+                                                                          
+incentiveVoucher                                      0.137**     0.130   
+                                                      (0.063)    (0.181)  
+                                                                          
+p2w                                                   -0.121**   -0.122** 
+                                                      (0.051)    (0.051)  
+                                                                          
+as.factor(version)2                                  -0.147***  -0.147*** 
+                                                      (0.051)    (0.051)  
+                                                                          
+regionEAST OF ENGLAND                      0.249**    0.249**    0.249**  
+                                           (0.106)    (0.106)    (0.106)  
+                                                                          
+regionGREATER LONDON                        0.140      0.140      0.140   
+                                           (0.104)    (0.104)    (0.104)  
+                                                                          
+regionSOUTH EAST                            0.146      0.146      0.146   
+                                           (0.100)    (0.100)    (0.100)  
+                                                                          
+regionSOUTH WEST                           0.278***   0.278***   0.278*** 
+                                           (0.106)    (0.107)    (0.107)  
+                                                                          
+regionWALES                                0.422***   0.423***   0.424*** 
+                                           (0.117)    (0.117)    (0.117)  
+                                                                          
+regionWEST MIDLANDS                         0.114      0.114      0.114   
+                                           (0.112)    (0.112)    (0.112)  
+                                                                          
+as.factor(quintile)2:incentiveThermometer                         0.113   
+                                                                 (0.244)  
+                                                                          
+as.factor(quintile)3:incentiveThermometer                         0.161   
+                                                                 (0.235)  
+                                                                          
+as.factor(quintile)4:incentiveThermometer                         -0.117  
+                                                                 (0.226)  
+                                                                          
+as.factor(quintile)5:incentiveThermometer                         0.367   
+                                                                 (0.225)  
+                                                                          
+as.factor(quintile)2:incentiveVoucher                             0.157   
+                                                                 (0.234)  
+                                                                          
+as.factor(quintile)3:incentiveVoucher                             0.068   
+                                                                 (0.228)  
+                                                                          
+as.factor(quintile)4:incentiveVoucher                             -0.176  
+                                                                 (0.219)  
+                                                                          
+as.factor(quintile)5:incentiveVoucher                             0.041   
+                                                                 (0.221)  
+                                                                          
+Constant                                  -2.853***  -2.792***  -2.752*** 
+                                           (0.109)    (0.120)    (0.157)  
+                                                                          
+--------------------------------------------------------------------------
+Observations                                18,000     18,000     18,000  
+Log Likelihood                            -5,586.562 -5,577.179 -5,571.720
+Akaike Inf. Crit.                         11,195.120 11,184.360 11,189.440
+==========================================================================
+Note:                                          *p<0.1; **p<0.05; ***p<0.01
