@@ -2,9 +2,10 @@
 
 Code used for a paper submitted for publication. This paper analyses the effects of different recruitment methods on recruitment outcomes using the SERL pilot study data - https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=8643
 
-## Pre-print
+## Article
 
-Link to pre-print goes here
+ * Link to pre-print goes here
+ * Link to published article goes here
 
 ## Abstract
 
