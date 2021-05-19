@@ -1,0 +1,743 @@
+---
+title: "SERL pilot study paper analysis"
+author: "Ellen Webborn"
+date: 'Last run at: `r Sys.time()`'
+output:
+  word_document
+---
+
+```{r setup, include=FALSE}
+
+library(data.table) 
+library(ggplot2) 
+library(broom) 
+library(car) 
+library(stringr)
+library(flextable)
+library(RColorBrewer)
+
+# Set figure defaults
+fig.h <- 5.5
+fig.w <- 10
+fullwidth <- TRUE
+font.size <- 18
+title.size <- 14
+geom.text.size <- 7
+
+knitr::opts_chunk$set(echo = FALSE, include = FALSE, message = FALSE, warning = FALSE, fig.width = fig.w, fig.height = fig.h, fig.fullwidth = fullwidth, dpi = 300)
+
+options(scipen=999)
+
+```
+
+
+```{r functions}
+
+# Format numbers with % in output tables
+format.percents <-
+  function(dt,
+           perc_cols = c("ResponseRate", "LowerCI", "UpperCI"),
+           decimals = 2) {
+    for (j in perc_cols) {
+      dt[, eval(j) := paste(format(round(get(j), digits = decimals), nsmall = decimals),
+                            "%", sep = "")]
+    }
+    dt
+  }
+
+# Format output tables
+my.flex <- function(t, autofit = FALSE) {
+  ft <- flextable(t)
+  ft <- theme_booktabs(ft)
+  ft <- theme_zebra(ft, 
+                    odd_header = rgb(84/255, 141/255, 212/255, 1),
+                    even_body = "transparent",
+                    odd_body = rgb(242/255, 242/255, 242/255, 1))
+  ft <- color(ft, color = "white", part = "header")
+  ft <- italic(ft, italic = TRUE, part = "header")
+  ft <- bold(ft, bold = FALSE, part = "header")
+  if(autofit == TRUE) {
+    ft <- autofit(ft)
+  } else{
+    ft <- set_table_properties(ft, layout = "autofit")
+  }
+  return(ft)
+}
+
+```
+
+```{r import}
+
+# load data
+load("N:/Documents/My publications/Pilot study paper/pilot_response_data_final.RData")
+
+# import font
+windowsFonts(`LM Roman 10` = windowsFont("LM Roman 10"))
+myFont <- "LM Roman 10"
+
+```
+
+```{r basicStats}
+
+n_signups <- results[consent == TRUE, .N]
+perc_signed_up <- round(n_signups / 18000 * 100, 1)
+n_survey_started <- results[survey_status %in% c("Completed", "Partially completed"), .N]
+perc_survey_started <- round(n_survey_started / n_signups * 100, 1)
+perc_survey_completed <- round(results[survey_status %in% c("Completed"), .N] / 
+                                 n_signups * 100, 1)
+
+n_survey_online <- results[survey_response_type == "online", .N]
+n_survey_post <- results[survey_response_type == "postal", .N]
+n_survey_both <- results[survey_response_type == "online + postal", .N]
+
+# Results with confidence intervals
+respRate <- binom.test(
+  results[consent == TRUE, .N],
+  18000,
+  p = n_signups/18000,
+  alternative = "two.sided",
+  conf.level = 0.95
+)
+signup_CI_low <- round(respRate$conf.int[1] * 100, 1)
+signup_CI_high <- round(respRate$conf.int[2] * 100, 1)
+
+
+```
+
+
+
+# Abstract
+
+Up to 4 mailings were sent to 18,000 addresses, recruiting `r n_signups` participants (`r perc_signed_up`% response rate) from England and Wales. 
+
+# Methods
+
+## Sample selection procedure
+
+Figure 1, Section 4.2
+
+```{r crossTabPlot, fig.cap="Counts of addresses contacted by region and IMD quintile", include = TRUE}
+
+t <- table(results$region, results$quintile)
+dt <- as.data.table(t)
+setnames(dt, c("V1", "V2"), c("Region", "IMD"))
+setkey(dt, Region)
+dt[, imd_name := sapply(dt$IMD, function(x) {
+  paste(x, " \n", dt[IMD == x, sum(N)], " total", sep = "")
+})]
+dt[, Region := sapply(dt$Region, function(x) {
+  paste(x, " \n", dt[Region == x, sum(N)], " total", sep = "")
+})]
+
+imd_reg_tile <-
+  ggplot2::ggplot(dt, aes(
+    y = Region,
+    x = imd_name,
+    fill = N / 18000 * 100
+  )) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "slateblue3") +
+  geom_text(aes(label = paste(round(N / 18000 * 100, 1), "%", sep = "")),
+            size = geom.text.size,
+            family = myFont)  +
+  labs(y = "Region",
+       x = "IMD Quintile") +
+  theme_light(base_family = myFont) +
+  theme(text = element_text(size = font.size),
+        axis.text.x = element_text(size = font.size - 1),
+        axis.text.y = element_text(size = font.size - 1),
+        legend.title = element_blank(),
+        legend.text = element_text(size = font.size - 1),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks = element_blank())
+
+imd_reg_tile 
+
+```
+
+# Results
+
+The pilot study recruited `r n_signups` participants; a `r perc_signed_up`% response rate (95% CI: `r signup_CI_low` - `r signup_CI_high`%).
+
+`r n_survey_started` (`r perc_survey_started`%) participants completed or partially completed the (optional but encouraged) SERL survey;  `r perc_survey_completed`% of participants answered in full. 
+
+`r n_survey_online` (`r round(n_survey_online / n_survey_started * 100, 1)`%) completed the survey online, `r n_survey_post` (`r round(n_survey_post / n_survey_started * 100, 1)`%) on paper and `r n_survey_both` (`r round(n_survey_both / n_survey_started * 100, 1)`%) did both. 
+
+
+## Overall sample representativeness
+
+```{r IMD}
+
+start_imd <- results[, .N, keyby = quintile]
+setnames(start_imd, "N", "StartingN")
+consent_imd <- results[consent == TRUE, .N, keyby = quintile]
+setnames(consent_imd, "N", "Participants")
+
+descr_imd <- start_imd[consent_imd]
+descr_imd[, ResponseRate := Participants / StartingN * 100]
+descr_imd[, LowerCI := ResponseRate - 1.96 * 
+            sqrt(ResponseRate * (100 - ResponseRate) / StartingN)]
+descr_imd[, UpperCI := ResponseRate + 1.96 * 
+            sqrt(ResponseRate * (100 - ResponseRate) / StartingN)]
+setorder(descr_imd, -ResponseRate)
+
+# Add final line to show overall results
+all_stats <- data.table(quintile = "All", 
+                        StartingN = results[, .N], 
+                        Participants = results[consent == TRUE, .N])
+all_stats[, ResponseRate := round(Participants / StartingN * 100, 1)]
+all_stats[, LowerCI := round(ResponseRate - 1.96 * 
+                               sqrt(ResponseRate * (100 - ResponseRate) / StartingN), 2)]
+all_stats[, UpperCI := round(ResponseRate + 1.96 * 
+                               sqrt(ResponseRate * (100 - ResponseRate) / StartingN), 2)]
+
+descr_imd <- rbind(descr_imd, all_stats)
+descr_imd <- format.percents(descr_imd)
+
+out.imd <- my.flex(descr_imd)
+out.imd <- set_header_labels(out.imd,
+                             quintile = "IMD quintile",
+                             StartingN = "Starting N",
+                             ResponseRate = "Response Rate",
+                             LowerCI = "Lower 95% CI",
+                             UpperCI = "Upper 95% CI")
+
+```
+
+Table 3, Section 5.1.1
+
+```{r, include = TRUE}
+out.imd
+```
+
+```{r region}
+
+start_reg <- results[, .N, keyby = region]
+setnames(start_reg, "N", "StartingN")
+consent_reg <- results[consent == TRUE, .N, keyby = region]
+setnames(consent_reg, "N", "Participants")
+
+descr_reg <- start_reg[consent_reg]
+descr_reg[, ResponseRate := Participants / StartingN * 100]
+descr_reg[, LowerCI := ResponseRate - 1.96 * 
+            sqrt(ResponseRate * (100 - ResponseRate) / StartingN)]
+descr_reg[, UpperCI := ResponseRate + 1.96 * 
+            sqrt(ResponseRate * (100 - ResponseRate) / StartingN)]
+setorder(descr_reg, -ResponseRate)
+
+setnames(all_stats, "quintile", "region")
+descr_reg <- rbind(descr_reg, all_stats)
+descr_reg <- format.percents(descr_reg)
+
+out.region <- my.flex(descr_reg)
+out.region <- set_header_labels(out.region,
+                             region = "Region",
+                             StartingN = "Starting N",
+                             ResponseRate = "Response Rate",
+                             LowerCI = "Lower 95% CI",
+                             UpperCI = "Upper 95% CI")
+
+```
+
+Table 4, Section 5.1.2
+
+```{r, include = TRUE}
+out.region
+```
+
+
+## Treatment effects
+
+```{r logitModelNointeraction}
+
+fullModelNoInteract <- glm(
+  formula = consent ~ 
+    factor(quintile, levels = c("3", "1", "2", "4", "5")) +
+    factor(
+      region,
+      levels = c(
+        "South East",
+        "East Midlands",
+        "East Of England",
+        "Greater London",
+        "South West",
+        "Wales",
+        "West Midlands"
+      )
+    ) +
+    incentive +
+    p2w +
+    factor(version, levels = c("2", "1")),
+  family = binomial(logit),
+  results
+) 
+
+fullModelNoInteract2 <- broom::tidy(fullModelNoInteract)
+fullModelNoInteract2 <- as.data.table(fullModelNoInteract2)
+fullModelNoInteract2 <- cbind(list("Region"), fullModelNoInteract2)
+setnames(fullModelNoInteract2, "V1", "Type")
+fullModelNoInteract2[term == "(Intercept)", 
+                     `:=`(Type = "Intercept", 
+                          term = "")]
+fullModelNoInteract2[str_detect(term, "quintile"), 
+                     `:=`(Type = "IMD",
+                          term = str_sub(term, -1, -1)
+                          )]
+
+# remove factor information
+fullModelNoInteract2[str_detect(term, "region"),
+   term := gsub(".*)","", term)]
+
+fullModelNoInteract2[str_detect(term, "incentive"),
+                     `:=`(Type = "Incentive",
+                          term = sapply(fullModelNoInteract2[str_detect(term, "incentive"), 
+                                                             term], 
+                                        function(x) {
+                                          str_sub(x, 10, str_length(x))
+                                          })
+                          )]
+     
+fullModelNoInteract2[term == "p2wTRUE", 
+                     `:=`(Type = "Push to Web",
+                          term = "TRUE")]
+
+fullModelNoInteract2[str_detect(term, "version"),
+   `:=`(Type = "Content version",
+        term = "Version 1")]
+
+
+fullModelNoInteract2[, oddsRatio := round(exp(estimate), 3)]
+
+fullModelNoInteract3 <- cbind(fullModelNoInteract2, 
+                              as.data.table(confint(fullModelNoInteract)))
+
+fullModelNoInteract3[, ORlowerCI := exp(`2.5 %`)]
+fullModelNoInteract3[, ORupperCI := exp(`97.5 %`)]
+setcolorder(fullModelNoInteract3, c(1:3, 8:9, 7, 10:11, 4:6))
+setnames(fullModelNoInteract3, 
+         c("2.5 %", "97.5 %"), 
+         c("CoeffLowerCI", "CoeffUpperCI"))
+
+chosen_cols <- colnames(fullModelNoInteract3)[3:10]
+for(i in chosen_cols) {
+  fullModelNoInteract3[, eval(i) := round(get(i), 3)]
+}
+
+fullModelNoInteract3[, p.value := round(p.value, 3)]
+
+
+# full output table
+out.fullModelNoInteract <- my.flex(fullModelNoInteract3)
+out.fullModelNoInteract <- set_header_labels(out.fullModelNoInteract,
+                                             Type = "Category",
+                                             term = "Variable",
+                                             estimate = "Coefficient",
+                                             CoeffLowerCI = "Coeff (lower 95%)",
+                                             CoeffUpperCI = "Coeff (upper 95%)",
+                                             oddsRatio = "Odds Ratio",
+                                             ORlowerCI = "OR (lower 95%)",
+                                             ORupperCI = "OR (upper 95%)",
+                                             std.error = "Standard error",
+                                             statistic = "Z value", 
+                                             p.value = "P-value")
+
+# treatment effects subtable
+out.treatments <- my.flex(fullModelNoInteract3[Type %in% c("Incentive",
+                                                           "Push to Web",
+                                                           "Content version"), ])
+out.treatments <- set_header_labels(
+  out.treatments,
+  Type = "Category",
+  term = "Variable",
+  estimate = "Coefficient",
+  CoeffLowerCI = "Coeff (lower 95%)",
+  CoeffUpperCI = "Coeff (upper 95%)",
+  oddsRatio = "Odds Ratio",
+  ORlowerCI = "OR (lower 95%)",
+  ORupperCI = "OR (upper 95%)",
+  std.error = "Standard error",
+  statistic = "Z value",
+  p.value = "P-value"
+)
+
+```
+
+Table 5, Section 5.2
+```{r, include = TRUE}
+out.treatments
+
+```
+
+
+### Incentives
+
+The conditional £5 voucher had a useful effect on sign-up to SERL, increasing participation from `r round(results[incentive == "None" & consent == TRUE, .N] / 6000 * 100, 1)`% (no incentive) to `r round(results[incentive == "Voucher" & consent == TRUE, .N] / 6000 * 100, 1)`%. 
+
+### Push to web
+
+This disadvantage of online sign up was that `r n_signups - n_survey_started` participants did not start the survey unlike all postal participants. 
+
+```{r p2w}
+
+# Create two tables: 1 with totals, one with percentages, merge manually
+
+## Totals
+p2w_n <- results[consent == TRUE, .N, keyby = p2w][c(2, 1)]
+p2w_n[, Perc := round(N / 9000 * 100, 1)]
+
+p2w_source <- results[consent == TRUE, .N, 
+                      keyby = .(p2w, consent_source)][c(4, 6, 5, 1, 3, 2)]
+
+p2w_n_tab <- data.table(Treatment = c("Push-to-web", "Control group"),
+                    StartingN = rep(9000, 2),
+                    Participants = p2w_n$N,
+                    ResponseRate = p2w_n$Perc,
+                    Online = p2w_source[consent_source == "online", N],
+                    Post = p2w_source[consent_source == "postal", N],
+                    Both = p2w_source[consent_source == "online+postal", N])
+
+p2w_n_tab <- rbind(p2w_n_tab, 
+                   c(list(Treatment = "All"), 
+                     p2w_n_tab[, lapply(.SD, sum), .SDcols = 2:7]))
+
+p2w_n_tab[Treatment == "All", ResponseRate := perc_signed_up]
+
+p2w_n_tab_out <- my.flex(p2w_n_tab)
+
+## Percentages
+setkey(p2w_n, "p2w")
+setkey(p2w_source, "p2w")
+p2w_source <- p2w_n[p2w_source]
+setnames(p2w_source, c("N", "i.N"), c("total", "N"))
+p2w_source[, Perc_tot := round(N / total * 100, 1)]
+p2w_source <- p2w_source[c(4:6, 1:3)]
+
+p2w_p_tab <- data.table(Online = p2w_source[consent_source == "online", 
+                                            Perc_tot],
+                        Post = p2w_source[consent_source == "postal", 
+                                          Perc_tot],
+                        Both = p2w_source[consent_source == "online+postal", 
+                                          Perc_tot])
+
+p2w_p_tab <- rbind(p2w_p_tab, 
+                   round(p2w_n_tab[3, 5:7] / n_signups * 100, 1))
+
+p2w_p_tab_out <- my.flex(p2w_p_tab)
+
+```
+
+
+Table 6, Section 5.2.2
+Totals
+```{r, include = TRUE}
+p2w_n_tab_out
+```
+
+Percentages to add to totals table
+```{r, include = TRUE}
+p2w_p_tab_out
+```
+
+
+
+### Message Content
+
+```{r messageContent}
+
+content <- results[consent == TRUE, .N, keyby = version]
+content[, Perc := round(N / 9000 * 100, 1)]
+
+
+content_tab <- data.table(Content = c("Treatment 1", "Treatment 2"),
+                    StartingN = rep(9000, 2),
+                    Participants = content$N,
+                    ResponseRate = content$Perc)
+
+content_tab_out <- my.flex(content_tab)
+
+version1RespRate <- binom.test(
+  results[consent == TRUE & version == "1", .N],
+  results[version == "1", .N],
+  p = results[consent == TRUE & version == "1", .N] / 9000,
+  alternative = "two.sided",
+  conf.level = 0.95
+)
+
+version2RespRate <- binom.test(
+  results[consent == TRUE & version == "2", .N],
+  results[version == "2", .N],
+  p = 0.08877778,
+  alternative = "two.sided",
+  conf.level = 0.95
+)
+```
+
+Table 7, Section 5.2.3
+```{r, include = TRUE}
+content_tab_out
+```
+
+Table 7 stats to add
+
+Version 1 Response rate confidence intervals: `r version1RespRate$conf.int`
+
+Version 2 Response rate confidence intervals: `r version2RespRate$conf.int`
+
+Odds ratio and p-values come from the logit model in the Appendix. 
+
+
+### Multiple reminders
+
+```{r mailings}
+
+mails <- results[consent == TRUE, .N, keyby = mailing]
+mails[, StartingN := 18000]
+for(i in 2:4) {
+  mails[i, StartingN := mails[i-1, StartingN] - mails[i-1, N]]
+}
+
+mails[, Response := round(N / StartingN * 100, 1)]
+mails[, PercOfSample := round(N/mails[, sum(N)]*100, 1)]
+
+mails[, CumulResp := mails[1, N]]
+for (i in 2:4) {
+  mails[i, CumulResp := mails[i-1, CumulResp] + N]
+  mails[i, PercIncrease := round(N / mails[i-1, CumulResp] * 100, 1)]
+}
+
+mails[, CumulResp := round(CumulResp / 18000 * 100, 1)]
+
+mails_formatted <- mails[ ,c(1,3,2,4,6,5,7)]
+format.percents(mails_formatted, 
+                perc_cols = c("Response", 
+                              "PercOfSample", 
+                              "PercIncrease"))
+
+mails_formatted[1, PercIncrease := ""]
+
+out.mails <- my.flex(mails_formatted)
+
+out.mails <- set_header_labels(
+  out.mails,
+  mailing = "Mailing",
+  StartingN = "Starting N",
+  N = "Participants per mailing",
+  CumulResp = "Cumulative participants",
+  Response = "Response rate per mailing",
+  PercOfSample = "Percent of participants",
+  PercIncrease = "% increase in participants"
+)
+
+my.imd.cols <- brewer.pal(9, "BuPu")[c(4, 6, 8, 9)]
+p.imd.mails <- ggplot(results[consent == TRUE], 
+                      aes(x = as.factor(quintile), 
+                          fill = as.factor(mailing))) +
+  geom_bar(position = position_stack(reverse = TRUE)) +
+  theme_light(base_family = myFont)  +
+    theme(legend.position = "bottom", 
+          text = element_text(size = font.size - 6),
+          panel.border = element_blank()) + 
+  labs(fill = "Mailing", 
+       x = "IMD quintile", 
+       y = "Number of participants") + 
+  scale_fill_manual(values = my.imd.cols) 
+
+cumul_mailings <- results[mailing == 1]
+cumul_mailings[, cumul_m := 1]
+cumul_mailings <- rbind(cumul_mailings,
+                        cbind(results[mailing %in% c(1, 2)],
+                              data.table(cumul_m = rep(2, 
+                                                       nrow(results[mailing %in% 
+                                                                      c(1, 2)])
+                                                       ))
+                              ))
+
+cumul_mailings <- rbind(cumul_mailings, 
+                        cbind(results[mailing %in% c(1, 2, 3)],
+                              data.table(cumul_m = rep(3, 
+                                                       nrow(results[mailing %in% 
+                                                                      c(1, 2, 3)])))
+                                              ))
+
+cumul_mailings <- rbind(cumul_mailings, 
+                        cbind(results[mailing %in% c(1, 2, 3, 4)], 
+                              data.table(cumul_m = rep(4, nrow(results[mailing %in% 
+                                                                         c(1, 2, 3, 4)])))
+                                              ))
+
+my.imd.cols <- brewer.pal(9, "BuPu")[c(4, 5, 6, 8, 9)]
+p.cumul.mail <- ggplot(cumul_mailings,
+                       aes(x = cumul_m,
+                           fill = factor(quintile))) + 
+  geom_bar(position = "fill") +
+  theme_light(base_family = myFont)  +
+    theme(legend.position = "top",
+          legend.box = "horizontal",
+          text = element_text(size = font.size - 6),
+          panel.border = element_blank()) + 
+  labs(fill = "IMD quintile", 
+       x = "Most recent mailing", 
+       y = "% of participants in current sample") + 
+  scale_fill_manual(values = my.imd.cols) + 
+  scale_y_continuous(labels = scales::percent) + 
+  guides(fill = guide_legend(title.position =  "top",
+                             title.hjust = 0.5))
+
+p.cumul.mail
+
+
+```
+
+
+Mailing 4 has the lowest response rate (`r mails[mailing == 4, round(Response, 1)]`%), increasing the total sample by around `r mails[mailing == 4, round(PercIncrease, 0)]`% (from `r mails[mailing == 3, CumulResp]`% to `r mails[mailing == 4, CumulResp]`%).
+
+
+Table 8, Section 5.2.4
+
+```{r, include = TRUE}
+out.mails
+```
+
+Figure 2, Section 5.2.4
+
+```{r fig.width = 3, fig.height = 4, include = TRUE}
+p.cumul.mail
+
+```
+
+
+# Appendix
+
+Table 9, Section 10.1
+```{r, include = TRUE}
+out.fullModelNoInteract
+
+```
+
+```{r logitModelInteractions}
+
+interactionsModel <-
+  glm(
+    formula = consent ~ 
+      factor(quintile, levels = c("3", "1", "2", "4", "5")) +
+      factor(
+        region,
+        levels = c(
+          "South East",
+          "East Midlands",
+          "East Of England",
+          "Greater London",
+          "South West",
+          "Wales",
+          "West Midlands")) +
+      incentive +
+      p2w +
+      factor(version, levels = c("2", "1")) +
+      incentive * factor(quintile, levels = c("3", "1", "2", "4", "5")) +
+      p2w *  factor(quintile, levels = c("3", "1", "2", "4", "5")) , 
+    family = binomial(logit), results
+  )
+
+summary(interactionsModel)
+
+interactionsModel2 <-  broom::tidy(interactionsModel)
+interactionsModel2 <- as.data.table(interactionsModel2)
+interactionsModel2[, `:=`(p.value = round(p.value, 3),
+                          estimate = round(estimate, 3),
+                          std.error = round(std.error, 3),
+                          statistic = round(statistic, 3))]
+setnames(interactionsModel2, "term", "Var1")
+
+interactionsModel2[Var1 == "(Intercept)", Var1 := "Intercept"]
+interactionsModel2[str_detect(Var1, "region"),
+   Var1 := gsub(".*)","", Var1)]
+
+interactionsModel2[str_detect(Var1, "quintile"),
+   Var1 := paste("IMD ", gsub(".*)","", Var1), sep = "")]
+
+interactionsModel2[str_detect(Var1, "version"),
+                   Var1 := paste("version ", gsub(".*)","", Var1), sep= "")]
+                   
+interactionsModel2[, Var1 := str_replace(Var1, "p2w", "Push to Web")]
+
+interactionsModel2[, Var2 := gsub(".*:", "", Var1)]
+
+interactionsModel2[Var1 == Var2, Var2 := NA]
+
+interactionsModel2[, Var1 := gsub("\\:.*", "", Var1)]
+
+interactionsModel2[, `:=`(Var1 = str_remove(Var1, "incentive"),
+                          Var2 = str_remove(Var2, "incentive"))]
+
+interactionsModel2[, `:=`(Var1 = str_remove(Var1, "TRUE"),
+                          Var2 = str_remove(Var2, "TRUE"))]
+
+
+interactionsModel2[, oddsRatio := round(exp(estimate), 3)]
+
+interactionsModel2 <- cbind(interactionsModel2,
+                              as.data.table(confint(interactionsModel)))
+
+interactionsModel2[, ORlowerCI := exp(`2.5 %`)]
+interactionsModel2[, ORupperCI := exp(`97.5 %`)]
+
+
+
+setcolorder(interactionsModel2, c(1:3, 8:9, 7, 10:11, 4:6))
+setnames(interactionsModel2, c("2.5 %", "97.5 %"), 
+         c("CoeffLowerCI", "CoeffUpperCI"))
+
+chosen_cols <- colnames(interactionsModel2)[4:8]
+for(i in chosen_cols) {
+  interactionsModel2[, eval(i) := round(get(i), 3)]
+}
+
+setcolorder(interactionsModel2, c("Var1", 
+                                  "Var2", 
+                                  "estimate",
+                                  "CoeffLowerCI", 
+                                  "CoeffUpperCI",
+                                  "oddsRatio",
+                                  "ORlowerCI",
+                                  "ORupperCI",
+                                  "std.error",
+                                  "statistic",
+                                  "p.value"))
+
+setnames(interactionsModel2, c("Var1", "Var2"), c("Variable 1", "Variable 2"))
+
+out.fullModelInteract <- my.flex(interactionsModel2)
+
+out.fullModelInteract <- set_header_labels(
+  out.fullModelInteract,
+  Var1 = "Variable 1",
+  Var2 = "Variable 2",
+  estimate = "Coefficient",
+  CoeffLowerCI = "Coeff (lower 95%)",
+  CoeffUpperCI = "Coeff (upper 95%)",
+  oddsRatio = "Odds Ratio",
+  ORlowerCI = "OR (lower 95%)",
+  ORupperCI = "OR (upper 95%)",
+  std.error = "Standard error",
+  statistic = "Z value",
+  p.value = "P-value"
+)
+
+
+
+```
+
+
+
+Table 10, Section 10.1
+
+```{r, include = TRUE}
+out.fullModelInteract
+
+```
+
+
+
