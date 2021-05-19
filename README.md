@@ -4,7 +4,7 @@ Code used for a paper submitted for publication. This paper analyses the effects
 
 ## Article
 
- * Link to pre-print goes here
+ * Pre-print: https://osf.io/f82b7/
  * Link to published article goes here
 
 ## Pre-print abstract
