@@ -32,4 +32,5 @@ This code loads a data table 'results' consisting of 18,000 rows (one per addres
 - version (1 or 2); content version received by the household
 - incentive ("None", "Thermometer", "Voucher")
 
+# Data
 Unfortunately the data cannot be made publicly available since some sub-groups of addresses contain fewer than 10 households which is against our statistical disclosure policy.
