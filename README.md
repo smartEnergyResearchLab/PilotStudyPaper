@@ -33,4 +33,4 @@ This code loads a data table 'results' consisting of 18,000 rows (one per addres
 - incentive ("None", "Thermometer", "Voucher")
 
 # Data
-Unfortunately the data cannot be made publicly available since some sub-groups of addresses contain fewer than 10 households which is against our statistical disclosure policy.
+Unfortunately the data cannot be made publicly available because SERL data is held in a secure data lab environment with quality-assured output checking processes. Any researcher interested in reproducing our results can apply for access to the data via the [UK Data Service](https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=8666).
