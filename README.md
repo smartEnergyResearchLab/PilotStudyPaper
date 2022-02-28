@@ -9,7 +9,7 @@ Code to analyse the efficacy of the different SERL recruitment methods in enhanc
 A paper analysing the effects of different recruitment methods on recruitment outcomes using the SERL pilot study data - https://beta.ukdataservice.ac.uk/datacatalogue/studies/study?id=8666
 
  * Pre-print: https://osf.io/f82b7/
- * Currently under review at ERSS
+ * Published in Energy Research & Social Science: https://doi.org/10.1016/j.erss.2021.102312 (open access)
 
 ### Pre-print abstract
 
